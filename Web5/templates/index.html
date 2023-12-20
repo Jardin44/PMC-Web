@@ -1,0 +1,76 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Diagnostics Data Visualization</title>
+</head>
+<body>
+    <h1>Tool Diagnostics Data Visualization</h1>
+
+    <form id="plotForm">
+        <label for="start_date">Start Date:</label>
+        <!-- Add the min attribute for selecting past years -->
+        <input type="date" id="start_date" name="start_date" value="2023-01-01" min="2000-01-01" required>
+
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required>
+
+        <label for="y_column">Y Column:</label>
+        <select id="y_column" name="y_column" required>
+            {% for column in y_columns %}
+            <option value="{{ column }}">{{ column }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- ปุ่มเพื่ออัปเดตกราฟ -->
+        <button type="button" onclick="updatePlot()">Update Plot</button>
+    </form>
+
+    <div>
+        <input type="checkbox" id="include_osiris" checked>
+        <label for="include_osiris" onclick="updatePlot()">Include Osiris</label>
+    </div>
+
+    <div>
+        <input type="checkbox" id="include_metrios" checked>
+        <label for="include_metrios" onclick="updatePlot()">Include Metrios</label>
+    </div>
+
+    <img id="plot_image" src="" alt="Plot Image">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Set End Date to the current date
+            document.getElementById('end_date').valueAsDate = new Date();
+
+            // Check the checkboxes on page load
+            await updatePlot(true);
+        });
+
+        async function updatePlot(initialLoad = false) {
+            // Check the values of the checkboxes
+            const includeOsiris = document.getElementById('include_osiris').checked;
+            const includeMetrios = document.getElementById('include_metrios').checked;
+
+            const formData = new FormData(document.getElementById('plotForm'));
+            formData.append('include_osiris', includeOsiris);
+            formData.append('include_metrios', includeMetrios);
+
+            const response = await fetch('/plot', {
+                method: 'POST',
+                body: formData
+            });
+
+            const blob = await response.blob();
+            document.getElementById('plot_image').src = URL.createObjectURL(blob);
+            
+            // If it's not the initial load, display an alert
+            if (!initialLoad) {
+                // alert(`Include Osiris: ${includeOsiris}, Include Metrios: ${includeMetrios}`);
+            }
+        }
+    </script>
+</body>
+</html>
